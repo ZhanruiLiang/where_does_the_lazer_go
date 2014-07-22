@@ -19,6 +19,16 @@
     return best;
   };
 
+  warn = function(message) {
+    $('#status').html($('<span>').addClass('warn').html(message));
+    return console.log('WARN:', message);
+  };
+
+  info = function(message) {
+    $('#status').html($('<span>').addClass('info').html(message));
+    return console.log('INFO:', message);
+  };
+
   Vec2 = (function() {
     function Vec2(x, y) {
       this.x = x;
@@ -370,7 +380,7 @@
         a[2] = end_x;
         a[3] = end_y;
       }
-      scale = Math.min(this.paper.width / (x1 - x0), this.paper.height / (y1 - y0));
+      scale = Math.min(this.paper.width / (x1 - x0), this.paper.height / (y1 - y0)) / 1.2;
       xc = (x1 + x0) / 2;
       yc = (y1 + y0) / 2;
       if (!isFinite(scale)) {
@@ -410,15 +420,5 @@
 
     return manager = new Manager();
   });
-
-  warn = function(message) {
-    $('#status').html($('<span>').addClass('warn').html(message));
-    return console.log('WARN:', message);
-  };
-
-  info = function(message) {
-    $('#status').html($('<span>').addClass('info').html(message));
-    return console.log('INFO:', message);
-  };
 
 }).call(this);

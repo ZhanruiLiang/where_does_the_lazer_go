@@ -239,7 +239,7 @@ class Manager
     if not $('#end_visible').is(':checked')
       a[2] = end_x
       a[3] = end_y
-    scale = Math.min(@paper.width / (x1 - x0), @paper.height / (y1 - y0))
+    scale = Math.min(@paper.width / (x1 - x0), @paper.height / (y1 - y0)) / 1.2
     xc = (x1 + x0) / 2
     yc = (y1 + y0) / 2
     if not isFinite(scale)
