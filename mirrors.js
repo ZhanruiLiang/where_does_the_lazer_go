@@ -194,8 +194,9 @@
       this.line.attr('path', path);
       this.line_origin.attr('path', ['M', this.start.v.x, this.start.v.y, 'L', this.end.v.x, this.end.v.y]);
       if (hit_count <= MAX_HIT_COUNT) {
-        return info('Finished in ' + hit_count + ' hits.');
+        info('Finished in ' + hit_count + ' hits.');
       }
+      return v1;
     };
 
     return Lazer;
@@ -274,18 +275,14 @@
     };
 
     Manager.prototype.reload_input = function() {
-      var angle, distance, end_x, end_y, format, i, mirror, numbers, update, x, _i, _len, _ref,
+      var angle, distance, end_x, end_y, i, mirror, numbers, update, x, _i, _len, _ref,
         _this = this;
 
       this.clear();
-      format = $('#format').val();
-      if (format === 'plain') {
-        numbers = $('#input_data').val().trim().split(/\ +/).map(parseFloat);
-      } else if (format === 'MMA') {
-        numbers = $('#input_data').val().trim().replace(/[{}]/g, '').split(/[\ ,]/).map(parseFloat).filter(function(x) {
-          return !isNaN(x);
-        });
-      }
+      numbers = $('#input_data').val().split(/[{}\[\] \n]+/).map(parseFloat).filter(function(x) {
+        return !isNaN(x);
+      });
+      console.log(numbers);
       if (numbers.length < 4 || numbers.length % 4 !== 0) {
         warn('Invalid data. Data should be more than 4 numbers and multiples of 4.');
         return;
@@ -324,7 +321,7 @@
         return _results;
       }).call(this);
       update = function() {
-        return _this.lazer.update(_this.mirrors);
+        return _this.update_lazer();
       };
       this.lazer.start.move(update);
       this.lazer.end.move(update);
@@ -334,14 +331,21 @@
         update = (function(mirror) {
           return function() {
             mirror.update();
-            return _this.lazer.update(_this.mirrors);
+            return _this.update_lazer();
           };
         })(mirror);
         mirror.end1.move(update);
         mirror.end2.move(update);
       }
-      this.lazer.update(this.mirrors);
-      return info('Done');
+      return this.update_lazer();
+    };
+
+    Manager.prototype.update_lazer = function() {
+      var result;
+
+      result = this.lazer.update(this.mirrors);
+      result = result.minus(new Vec2(this.paper.width / 2, this.paper.height / 2)).dot(1 / this.scale).plus(this.center);
+      return info('Result:' + '(' + result.x + ', ' + result.y + ')');
     };
 
     Manager.prototype.adjust_numbers = function(a) {
@@ -388,6 +392,8 @@
         xc = this.paper.width / 2;
         yc = this.paper.height / 2;
       }
+      this.scale = scale;
+      this.center = new Vec2(xc, yc);
       convert_x = function(x) {
         return (x - xc) * scale + _this.paper.width / 2;
       };

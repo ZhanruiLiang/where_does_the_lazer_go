@@ -134,6 +134,7 @@ class Lazer
     @line_origin.attr 'path', ['M', @start.v.x, @start.v.y, 'L', @end.v.x, @end.v.y]
     if hit_count <= MAX_HIT_COUNT
       info 'Finished in ' + hit_count + ' hits.'
+    v1
 
 class Mirror
   constructor: (paper, v1, v2) ->
@@ -182,12 +183,11 @@ class Manager
   reload_input: () ->
     @clear()
     
-    format = $('#format').val()
-    if format == 'plain'
-      numbers = $('#input_data').val().trim().split(/\ +/).map parseFloat
-    else if format == 'MMA'
-      numbers = $('#input_data').val().trim().replace(/[{}]/g, '').split(/[\ ,]/)
-        .map(parseFloat).filter((x) -> not isNaN(x))
+    numbers = $('#input_data').val()
+      # .split(/(\[\]{}[\ ,]\n)+/)
+      .split(/[{}\[\] \n]+/)
+      .map(parseFloat).filter((x) -> not isNaN(x))
+    console.log numbers
     if numbers.length < 4 or numbers.length % 4 != 0
       warn('Invalid data. Data should be more than 4 numbers and multiples of 4.')
       return
@@ -209,20 +209,24 @@ class Manager
 
     # Bind the update functions
     update = () =>
-      @lazer.update(@mirrors)
+      @update_lazer()
     @lazer.start.move update
     @lazer.end.move update
 
     for mirror in @mirrors
       update = ((mirror) => () =>
         mirror.update()
-        @lazer.update(@mirrors)
+        @update_lazer()
       )(mirror)
       mirror.end1.move update
       mirror.end2.move update
 
-    @lazer.update(@mirrors)
-    info 'Done'
+    @update_lazer()
+
+  update_lazer: () ->
+    result = @lazer.update(@mirrors)
+    result = result.minus(new Vec2(@paper.width / 2, @paper.height / 2)).dot(1 / @scale).plus(@center)
+    info 'Result:' + '(' + result.x + ', ' + result.y + ')'
 
   adjust_numbers: (a) ->
     if not $('#end_visible').is(':checked')
@@ -246,6 +250,9 @@ class Manager
       scale = 1
       xc = @paper.width / 2
       yc = @paper.height / 2
+    @scale = scale
+    @center = new Vec2(xc, yc)
+
     convert_x = (x) => (x - xc) * scale + @paper.width / 2
     convert_y = (y) => (y - yc) * scale + @paper.height / 2
     result = []
